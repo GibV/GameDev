@@ -10,14 +10,12 @@ class VECTOR:
     def __init__(self, x, y):
         self.pos = [x, y]
 
-    def norm(self):
-        self.normalise()
-
+    @property
     def lenght(self):
         return (self.pos[0]**2+self.pos[1]**2)**(1/2)
 
     def normalise(self):
-        self.pos = [i/self.lenght() for i in self.pos]
+        self.pos = [i/self.lenght for i in self.pos]
 
     def __mul__(self, other):
         if type(other) in [float, int]:
@@ -40,3 +38,9 @@ class VECTOR:
 
     def __rsub__(self, other):
         return self-other
+
+    def __getitem__(self, key):
+        return self.pos[key]
+
+    def __len__(self):
+        return 2

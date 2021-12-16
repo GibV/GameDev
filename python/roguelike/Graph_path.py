@@ -1,4 +1,4 @@
-
+from geometry import VECTOR
 
 
 
@@ -16,7 +16,7 @@ class GRAPH:
     @classmethod
     def map(cls, mat, available = None, metric = None):
         if available==None:
-            available = lambda x: 0<=x[0]<len(mat) and 0<=x[1]<len(mat[0])
+            available = lambda x, y: 0<=x[0]<len(mat) and 0<=x[1]<len(mat[0])
         if metric == None:
             metric = lambda x, y: ((x[0]-y[0])**2+(x[1]-y[1])**2)**(1/2)
         vs = len(mat)*len(mat[0])
@@ -28,7 +28,7 @@ class GRAPH:
 ##                neighbours = []
                 for n in [-1, 0, 1]:
                     for m in ([-1, 0, 1] if n!=0 else [-1, 1]):
-                        if available([i+n, j+m]):
+                        if available(VECTOR(i+n, j+m), VECTOR(i, j)):
 ##                            print('--\n', i*len(mat[0])+j, i+n, j+m, (i+n)*len(mat[0])+j+m)
 ##                            if n**2+m**2==2:
 ##                                ret[i*len(mat)+j][(i+n)*len(mat)+j+m] = 2**(1/2)
@@ -37,8 +37,14 @@ class GRAPH:
 
     def __init__(self, graph):
         self.graph = graph
-        self.paths = [[PATH(0 if i==j else None) for i in range(len(self.graph[0]))] for j in range(len(self.graph))]
+        self.paths = []#[[PATH(0 if i==j else None) for i in range(len(self.graph[0]))] for j in range(len(self.graph))]
 
+        for i in range(len(self.graph)):
+            self.paths.append([])
+            for j in range(len(self.graph[0])):
+                self.paths[-1].append(PATH(0 if i==j else None))
+                self.paths[-1][-1].path.append(i)
+        
     def solve(self):
         for start in range(len(self.graph)):
             # actual = start

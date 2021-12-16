@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import Objs
+import DATA
 
 FPS = 60
 TILE_SIZE = 30
@@ -11,22 +12,30 @@ RED =   (255,   0,   0)
 YELLOW= (255, 255,   0)
 BLACK = (0, 0, 0)
 
+data = DATA.DATA_MANAGER(r'.\data.bin')
+data.load(lambda : {'levels': [], 'options': {'brightness': 0}})
+
 def get_start_area(size):
     ret = [[(Objs.TILE(['wall', None]) if (i in [0, size[1]-1]) or (j in [0, size[0]-1]) or (i==5 and j==7)else Objs.TILE()) for i in range(size[1])] for j in range(size[0])]
     return ret
+
+def END():
+##    data.save()
+    exit()
 
 class GAME:
 
     def __init__(self):
         size = (20, 20)
-        self.board = Objs.MAP(size, get_start_area(size))
+        self.board = Objs.MAP(size, get_start_area(size), data = data)
         self.player = Objs.PLAYER(self.board, (1, 1))
         goblin = Objs.MOB(self.board, [18, 18])
         goblin.color = GREEN
+        self.path = []
 ##        self.board.put_creature(goblin)#Не нужно, потому что он бахается на карту при инициализации
 
     def main_menu(self):
-        items = {'play': self.run, 'Wow': lambda: print('Wow'), 'exit': lambda: exit()}
+        items = {'play': self.run, 'Wow': lambda: print('Wow'), 'exit': lambda: END()}
         ITEM_H = screen.get_height()//(1+len(items))
         while True:
             clock.tick(FPS)
@@ -61,7 +70,7 @@ class GAME:
                 self.player.move(( 1, 0))
 ##            print(pygame.mouse.get_pressed())
             if pygame.mouse.get_pressed()[0]:
-                self.player.move_to([i//TILE_SIZE for i in event.pos])
+                self.path = self.player.move_to([i//TILE_SIZE for i in pygame.mouse.get_pos()])
 
             for event in pygame.event.get():
                 if event.type==QUIT:
@@ -94,9 +103,14 @@ class GAME:
         ret = pygame.Surface((TILE_SIZE*len(self.board.board), TILE_SIZE*len(self.board.board[0])))
         for i in range(len(self.board.board)):
             for j in range(len(self.board.board[i])):
-                ret.blit(pygame.transform.scale(self.board.board[i][j].surf, (TILE_SIZE, TILE_SIZE)), (i*TILE_SIZE, j*TILE_SIZE))
+##                print(self.board.board[i][j])
+                if self.board.board[i][j]!=None:
+                    ret.blit(pygame.transform.scale(self.board.board[i][j].surf, (TILE_SIZE, TILE_SIZE)), (i*TILE_SIZE, j*TILE_SIZE))
         for mob in self.board.mobs:
             ret.blit(pygame.transform.scale(mob.surf, [i*TILE_SIZE for i in mob.size]), [int(i*TILE_SIZE) for i in mob.pos])
+        if len(self.path)>1:
+##            print(self.path)
+            pygame.draw.lines(ret, RED, False, [[j*TILE_SIZE for j in i] for i in self.path], 5)
         return ret
 
 game = GAME()
@@ -108,5 +122,7 @@ font = pygame.font.SysFont('consolas', 40)
 pygame.display.flip()
 
 game.main_menu()
+data.save()
 
 pygame.quit()
+##data.save()
